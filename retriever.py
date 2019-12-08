@@ -34,64 +34,42 @@ class RankedRetriever:
             - fazer o ângulo com todos e ver o top Y
     '''
     def query(self, query, y = 10):
-        lnc = TF_IDF_LTC()
+        ltc = TF_IDF_LTC()
         t = Tokenizer()
         tokens = t.tokenize(query)
         i = IndexerWeighted(len(tokens))
-        i.addToIndexWeighted("1",tokens,lnc)
+        i.addToIndexWeighted("1",tokens,ltc)
+        #print(i.index)
 
-        print(i.index)
-        query_weights = [] # Armazenar o tf-idf de cada termo
-        doc_weights = [] # Armazenar o tf-idf de cada termo por cada documento (0 se o termo não existir nesse documento)
-        # Calculate the query weight for each token
-        # Wt,q = idf do termo * (1 + log(tf))
-        for t in tokens:
+        query_weights = {} # Armazenar o tf-idf de cada termo
+        doc_weights = {} # Armazenar o tf-idf de cada termo por cada documento (0 se o termo não existir nesse documento)
+        for k in list(i.index.keys()):
+            query_weights[k] = i.index[k].split(":")[1]
+
             # Retrieve the terms index entry
-            term = self.openTerm(t)
-            # Compile list of documents that contain such terms
-            temp = []
+            term = self.openTerm(k)
+            if not term:
+                continue
+
+            #print(term)
             for d in term['docs']:
-                temp.append((d[0],d[1]))
-            doc_weights.append(temp)
-            #print(term['name'] + " appears " + str(len(i.index[t].split(","))) + " on the query with a idf of " + term['idf'])
-            # Calculate the query weight (non-normalized)
-            query_weights.append(float(term['idf']) * (1 + math.log10(len(i.index[t].split(",")))))
-
-        # Normalization
-        query_weights = self.normalize(query_weights)
-
-        weights_matrix = {}
-        # Matrix creation
-        for x in range(len(doc_weights)):
-            for y in range(len(doc_weights[x])):
-                if not doc_weights[x][y][0] in list(weights_matrix.keys()):
-                    weights_matrix[doc_weights[x][y][0]] = [0] * len(query_weights)
-                    weights_matrix[doc_weights[x][y][0]][x] = doc_weights[x][y][1]
+                if d[0] in doc_weights.keys():
+                    doc_weights[d[0]] += float(d[1]) * float(query_weights[k])
                 else:
-                    weights_matrix[doc_weights[x][y][0]][x] = doc_weights[x][y][1]
-
-        # Inner Product
-        inner_products = {}
-        for i in list(weights_matrix.keys()):
-            temp_value = 0
-            for d in range(len(weights_matrix)):
-                temp_value += float(query_weights[d]) * float(weights_matrix[i][d])
-            inner_products[i] = temp_value
-
-        print(inner_products)
+                    doc_weights[d[0]] = float(d[1]) * float(query_weights[k])
 
         # TODO: Get a way to get more values by similarity
         # TODO: Way to cache and retrieve blocks as needed in multi-block environments
 
         # Return sorted
         sorted_pmids = []
-        while len(list(inner_products.keys())) != 0:
+        while len(list(doc_weights.keys())) != 0:
             max = (0,0)
-            for i in list(inner_products.keys()):
-                if inner_products[i] > max[1]:
-                    max = (i, inner_products[i])
+            for i in list(doc_weights.keys()):
+                if doc_weights[i] > max[1]:
+                    max = (i, doc_weights[i])
             sorted_pmids.append(max[0])
-            del inner_products[max[0]]
+            del doc_weights[max[0]]
 
         return sorted_pmids
 
@@ -100,16 +78,16 @@ class RankedRetriever:
     '''
         Normalization
     '''
-    def normalize(self, weights):
+    def calculateLength(self, tf_log):
         temp = []
-        for i in weights:
+        for i in tf_log:
             temp.append(i**2)
         length = sum(temp)
         length = math.sqrt(length)
 
-        for i in range(len(weights)):
-            weights[i] = weights[i]/length
-        return weights
+        for i in range(len(tf_log)):
+            tf_log[i] = tf_log[i]/length
+        return tf_log
 
     '''
         Index verification and access

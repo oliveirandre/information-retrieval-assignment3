@@ -62,7 +62,7 @@ class IndexerWeighted:
     #   - calcular pesos dos termos
     #   - posteriormente adicionar ao index geral
 
-    def addToIndexWeighted(self, docid, values, weighting):
+    def addToIndexWeighted(self, docid, values, weighting, n = False):
         # Lista das posições dos termos num documento
         termsList = {}
         i = 0

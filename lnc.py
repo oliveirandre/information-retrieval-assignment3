@@ -6,7 +6,7 @@ Authors:
 - Dinis Canastro, nº80299
 """
 
-import math 
+import math
 
 class TF_IDF_LNC:
 
@@ -16,7 +16,7 @@ class TF_IDF_LNC:
     '''
     def __init__(self):
         self.idf = {}
-    
+
     # method that calculates the term frequency (1+log(tf))
     def termFrequency(self, terms):
         weighted = {}
@@ -29,7 +29,8 @@ class TF_IDF_LNC:
         sum = 0
         normalized = {}
         for key in tf:
-            sum += tf[key]
+            sum += tf[key]**2
+        sum = math.sqrt(sum)
         for key in tf:
             normalized[key] = tf[key] / sum
         return normalized

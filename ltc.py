@@ -6,7 +6,7 @@ Authors:
 - Dinis Canastro, nº80299
 """
 
-import math 
+import math
 
 class TF_IDF_LTC:
 
@@ -18,14 +18,15 @@ class TF_IDF_LTC:
         weighted = {}
         for key in terms:
             weighted[key] = 1 + math.log10(terms[key])
-        return weighted    
+        return weighted
 
     # method that normalizes the document terms (log(N/df))
     def normalize(self, tf):
         sum = 0
         normalized = {}
         for key in tf:
-            sum += tf[key]
+            sum += tf[key]**2
+        sum = math.sqrt(sum)
         for key in tf:
             normalized[key] = tf[key] / sum
         return normalized

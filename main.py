@@ -20,22 +20,7 @@ import threading
 import gc
 
 verbose = False
-threads = False
-low_memory = True
-compression1 = False
-compression2 = False
-min_token_size = 3
-stemmer_cache = 10000
-spimi = False
-weight = None
-index_mode = "None"
-
-# Parametros que não vão para o CLI porque não suporta todos :,)
-read_size = 100000
-file_limit = 1000000
-reading_window = 1000
-split_mode_file_size = 10000
-
+path = "queries.txt"
 
 """
 Statistics:
@@ -48,11 +33,44 @@ Notes:
 """
 
 def main():
+    global verbose
+    global path
+
     r = RankedRetriever()
 
     # Test: PMID- 10605440
     #       TI  - Movement of sea urchin sperm flagella.
-    r.query("Movement of sea urchin sperm flagella", 10)
+    #print(r.query("Isolation and characterization of kinetoplast DNA from bloodstream form of Trypanosoma brucei", 10))
+
+    query_result = {}
+
+    # Correr querie rank para todos
+    f = open(path, "r")
+    line = "First"
+    while True:
+        line = f.readline()
+        if line == "":
+            break
+        temp = line.split("\t")
+        #print("Query n. " + temp[0] + ": " + temp[1])
+        query_result[temp[0]] = r.query(temp[1])
+    #print(query_result)
+
+    # Comparar com o query relevance
+    # 1 - query mais relevante, 2 - query menos relevante
+    query_relevance = {}
+    f = open("queries.relevance.txt", "r")
+    while True:
+        line = f.readline()
+        if line == "":
+            break
+        temp = line.split("\t")
+        if temp[0] in query_relevance.keys():
+            query_relevance[temp[0]].append((temp[1],temp[2].replace("\n","")))
+        else:
+            query_relevance[temp[0]] = [(temp[1],temp[2].replace("\n",""))]
+    #print(query_relevance["1"])
+
 
 
 
@@ -61,9 +79,14 @@ def main():
     Functions to process command line arguments
 '''
 def readCLArguments(args):
-
+    global verbose
+    global path
     if ('--help' in args):
         printHelp()
+    if ('-v' in args):
+        verbose = True
+    if ('--path' in args or '-p' in args):
+        path = args[args.index('-p') + 1]
 
 
 
