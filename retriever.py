@@ -43,27 +43,31 @@ class RankedRetriever:
 
         query_weights = {} # Armazenar o tf-idf de cada termo
         doc_weights = {} # Armazenar o tf-idf de cada termo por cada documento (0 se o termo não existir nesse documento)
+        #print(self.openTerm("human")["idf"])
         for k in list(i.index.keys()):
             query_weights[k] = i.index[k].split(":")[1]
-
+            #print(query_weights)
             # Retrieve the terms index entry
             term = self.openTerm(k)
             if not term:
+                print("Não encontrou o token " + k + " nos indices")
                 continue
-
-            #print(term)
+            
+            query_weights[k] = float(query_weights[k]) * float(term['idf'])
             for d in term['docs']:
                 if d[0] in doc_weights.keys():
+                    # if d[0] == "7551519":
+                    #     print(d[1])
+                    #print(str(d[1]) + " * " + str(query_weights[k]))
                     doc_weights[d[0]] += float(d[1]) * float(query_weights[k])
                 else:
                     doc_weights[d[0]] = float(d[1]) * float(query_weights[k])
-
-        # TODO: Get a way to get more values by similarity
-        # TODO: Way to cache and retrieve blocks as needed in multi-block environments
-
+    
         # Return sorted
         sorted_pmids = []
         while len(list(doc_weights.keys())) != 0:
+            if(len(sorted_pmids) == y):
+                break
             max = (0,0)
             for i in list(doc_weights.keys()):
                 if doc_weights[i] > max[1]:
@@ -71,7 +75,10 @@ class RankedRetriever:
             sorted_pmids.append(max[0])
             del doc_weights[max[0]]
 
-        return sorted_pmids
+        if y <= len(sorted_pmids):
+            return sorted_pmids[0:y]
+        else: # TODO: Meter aqui algoritmo de pesquisar similares
+            return sorted_pmids
 
 
 
@@ -105,17 +112,17 @@ class RankedRetriever:
             index_marks[temp[1].replace("\n", "")] = int(temp[0])
         print("Found " + str(n) + " terms.")
         # Abrir ficheiros do indice 1 a 1 para ver o N
-        print(index_marks)
+        #print(index_marks)
         return (index_marks, n)
 
 
-    # TODO: Ler um bloco do index para memória
+    # TODO: Fazer uma cache nesta função
     def openTerm(self, term):
         index_file = 0
         for k in self.index_marks.keys():
             if term >= k:
                 index_file = self.index_marks[k]
-                #print("Term: " + term +" found in document bigboy"  + str(index_file))
+        #print("Term: " + term +" found in document bigboy"  + str(index_file))
         f = open("result/big_boy" + str(index_file), "r")
         line = "Oi"
         while line != "":
@@ -132,12 +139,9 @@ class RankedRetriever:
         term["name"] = temp1[0]
         term["idf"] = temp1[1]
         term["docs"] = []
+
         for i in range(1,len(temp)-1):
             temp2 = temp[i].split(":")
             term["docs"].append((temp2[0], temp2[1], temp2[2].split(",")))
         return term
 
-    # TODO: Deprecate isto
-    # Pesquisar e abrir um unico termo do indice
-    def readIndexLineWeights(self,line):
-        pass
