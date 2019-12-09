@@ -14,6 +14,20 @@ class Rocchio:
         return
 
     def RocchioAlgorithm(self, relevances):
+
+        nrd = 0 # number of relevant documents
+        nid = 0 # number of irrelevant documents
+
+        for key, value in relevances.items():
+            for doc in value:
+                if doc[1] == 1:
+                    nrd += 1
+                else:
+                    nid += 1
+            print(key + "\t-> relevant: " + str(nrd) + "  \t| irrelevant: " + str(nid))
+            nrd = 0
+            nid = 0
+
         '''        
         for t in query:
             if t in self.WholeS:
@@ -22,17 +36,6 @@ class Rocchio:
                 self.WholeS.append(t)
                 for i in range(len(self.WeightV)):
                     self.WeightV[i][t] = 0
-
-        nrd = 0 # number of relevant documents
-        nid = 0 # number of irrelevant documents
-
-        # update values of nrd and nid
-        # alterar para o nosso caso
-        for i in range(len(documents)):
-            if documents[i] == 1:
-                nrd += 1
-            else:
-                nid += 1
         
         # initialize Rocchio parameters
         alpha = self.alpha
@@ -69,8 +72,6 @@ class Rocchio:
                 else:
                     self.Rocchio[t] -= gamma*self.WeightV[i][t]
         '''
-        print(relevances)
-
 
         return
 
