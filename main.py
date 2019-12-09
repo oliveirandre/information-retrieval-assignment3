@@ -25,6 +25,7 @@ import threading
 import gc
 from query import QueryStatistics
 import statistics
+from rocchio import Rocchio
 
 verbose = False
 path = "queries.txt"
@@ -35,6 +36,7 @@ def main():
     global path
     global size
 
+    rocchio = Rocchio()
     r = RankedRetriever()
     query_result = {}
 
@@ -85,6 +87,7 @@ def main():
         else:
             query_relevance[temp[0]] = [(temp[1],int(temp[2].replace("\n","")))]
     
+    rocchio.RocchioAlgorithm(query_relevance)
     
     results = []
     for i in query_result.keys():
