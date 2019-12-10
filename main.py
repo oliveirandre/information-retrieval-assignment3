@@ -37,6 +37,7 @@ def main():
     global size
 
     rocchio = Rocchio()
+    t = Tokenizer()
     r = RankedRetriever()
     query_result = {}
 
@@ -65,6 +66,7 @@ def main():
         start_time = time.time()
 
         query_result[temp[0]] = r.query(temp[1],size)
+        
         print("Finished query " + temp[0])
         elapsed_time = time.time() - start_time
         times.append(elapsed_time)
@@ -87,7 +89,7 @@ def main():
         else:
             query_relevance[temp[0]] = [(temp[1],int(temp[2].replace("\n","")))]
     
-    rocchio.RocchioAlgorithm(query_relevance)
+    #rocchio.RocchioAlgorithm(query_relevance)
     
     results = []
     for i in query_result.keys():

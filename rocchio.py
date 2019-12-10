@@ -1,10 +1,8 @@
 class Rocchio:
     def __init__(self):
         self.alpha = 1
-        self.beta = 0.75
-        self.gamma = 0.15
-        self.WholeS = {}
-        self.WeightV = {}
+        self.beta = 0.5
+        self.gamma = 0.25
         self.Rocchio = {}
     
     def ChangeValues(self, alpha, beta, gamma):
@@ -13,67 +11,61 @@ class Rocchio:
         self.gamma = gamma
         return
 
-    def RocchioAlgorithm(self, relevances):
+    
+    def RocchioAlgorithm(self, query, docs):
+        relevants = {}
+        irrelevants = {}
+        f = open("result/big_boy0", "r")
+        lines = [line.strip() for line in f.readlines()]
+        f.close()
+        for line in lines:
+            for i in range(1, len(line.split(";"))-1):
+                post = line.split(";")[0]
+                term = post.split(":")[0]
+                posting = line.split(";")[i]
 
-        nrd = 0 # number of relevant documents
-        nid = 0 # number of irrelevant documents
-
-        for key, value in relevances.items():
-            for doc in value:
-                if doc[1] == 1:
-                    nrd += 1
+                # relevant documents
+                if posting.split(":")[0] in docs:
+                    weight = posting.split(":")[1]
+                    if term in relevants:
+                        relevants[term] += float(weight)
+                    else:
+                        relevants[term] = float(weight)
+                
+                #irrelevant documents
                 else:
-                    nid += 1
-            print(key + "\t-> relevant: " + str(nrd) + "  \t| irrelevant: " + str(nid))
-            nrd = 0
-            nid = 0
+                    weight = posting.split(":")[1]
+                    if term in irrelevants:
+                        irrelevants[term] += float(weight)
+                    else:
+                        irrelevants[term] = float(weight)       
 
-        '''        
-        for t in query:
-            if t in self.WholeS:
-                continue
-            else:
-                self.WholeS.append(t)
-                for i in range(len(self.WeightV)):
-                    self.WeightV[i][t] = 0
-        
         # initialize Rocchio parameters
         alpha = self.alpha
-        if nrd > 0:
-            beta = self.beta / nrd
-        else:
-            beta = 0
-        if nid > 0:
-            gamma = self.gamma / nid
-        else:
-            gamma = 0
+        beta = self.beta
+        gamma = self.gamma
 
-        # build initial query vector
-        
-        sum = 0
-        for t in self.WholeS:
-            if t in query:
-                self.Rocchio[t] = 1
-                sum += 1
+        final = {}
+        for t in query:
+            final[t] = query[t]
+
+        for t in relevants:
+            if t in final:
+                final[t] += beta*relevants[t]
             else:
-                self.Rocchio[t] = 0
-        sum = math.sqrt(sum)
-        for t in self.WholeS:
-            self.Rocchio[t] /= sum
-        '''
+                final[t] = beta*relevants[t]
 
-        # algorithm
-        '''
-        for t in self.WholeS:
-            self.Rocchio[t] *= alpha
-            for i in range(len(documents)):
-                if documents[i] == 1:
-                    self.Rocchio[t] += beta*self.WeightV[i][t]
-                else:
-                    self.Rocchio[t] -= gamma*self.WeightV[i][t]
-        '''
+        for t in irrelevants:
+            if t in final:
+                final[t] -= gamma*irrelevants[t]
+            else:
+                final[t] = gamma*irrelevants[t]
 
-        return
+        for t in query:
+            if float(final[t]) < 0:
+                final[t] = 0
+            
+        return final
 
 
 

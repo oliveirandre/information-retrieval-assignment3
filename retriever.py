@@ -1,6 +1,7 @@
 from tokenizer import Tokenizer
 from indexer import IndexerWeighted
 from ltc import TF_IDF_LTC
+from rocchio import Rocchio
 import math
 
 '''
@@ -23,8 +24,8 @@ class RankedRetriever:
     '''
     def __init__(self):
         self.index_marks, self.term_ammount = self.verifyIndex()
-
-
+        self.r = Rocchio()
+        self.relevants = []
 
     '''
         Passos a fazer:
@@ -39,7 +40,6 @@ class RankedRetriever:
         tokens = t.tokenize(query)
         i = IndexerWeighted(len(tokens))
         i.addToIndexWeighted("1",tokens,ltc)
-        #print(i.index)
 
         query_weights = {} # Armazenar o tf-idf de cada termo
         doc_weights = {} # Armazenar o tf-idf de cada termo por cada documento (0 se o termo não existir nesse documento)
@@ -62,7 +62,7 @@ class RankedRetriever:
                     doc_weights[d[0]] += float(d[1]) * float(query_weights[k])
                 else:
                     doc_weights[d[0]] = float(d[1]) * float(query_weights[k])
-    
+        
         # Return sorted
         sorted_pmids = []
         while len(list(doc_weights.keys())) != 0:
@@ -74,6 +74,8 @@ class RankedRetriever:
                     max = (i, doc_weights[i])
             sorted_pmids.append(max[0])
             del doc_weights[max[0]]
+        
+        expanded_query = self.r.RocchioAlgorithm(query_weights, sorted_pmids)
 
         if y <= len(sorted_pmids):
             return sorted_pmids[0:y]
