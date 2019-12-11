@@ -95,12 +95,16 @@ class RankedRetriever:
         i.addToIndexWeighted("1",tokens,ltc)
 
         query_weights = {} # Armazenar o tf-idf de cada termo
-        doc_weights = {} # Armazenar o tf-idf de cada termo por cada documento (0 se o termo não existir nesse documento)
         #print(self.openTerm("human")["idf"])
         for k in list(i.index.keys()):
             query_weights[k] = i.index[k].split(":")[1]
-            #print(query_weights)
-            # Retrieve the terms index entry
+
+        return query_weights
+
+    def expandedQueryResults(self, expanded_query, y = 10):
+        query_weights = expanded_query
+        doc_weights = {}
+        for k in list(query_weights.keys()):
             term = self.openTerm(k)
             if not term:
                 print("Não encontrou o token " + k + " nos indices")
@@ -115,8 +119,24 @@ class RankedRetriever:
                     doc_weights[d[0]] += float(d[1]) * float(query_weights[k])
                 else:
                     doc_weights[d[0]] = float(d[1]) * float(query_weights[k])
-        
-        return query_weights
+
+        # Return sorted
+        sorted_pmids = []
+        while len(list(doc_weights.keys())) != 0:
+            if(len(sorted_pmids) == y):
+                break
+            max = (0,0)
+            for i in list(doc_weights.keys()):
+                if doc_weights[i] > max[1]:
+                    max = (i, doc_weights[i])
+            sorted_pmids.append(max[0])
+            del doc_weights[max[0]]
+
+        if y <= len(sorted_pmids):
+            return sorted_pmids[0:y]
+        else: # TODO: Meter aqui algoritmo de pesquisar similares
+            return sorted_pmids
+
 
     '''
         Normalization
@@ -208,7 +228,8 @@ class RankedRetriever:
     def cacheStart(self, cache_size):
         self.open_indexes = list(range(0,cache_size))
         for i in self.open_indexes:
-            f = open("result/big_boy" + str(i), "r")
+            f = open("result/big_boy0", "r")
+            #f = open("result/big_boy" + str(i), "r")
             self.index_in_mem[i]  = f.readlines()
             f.close()
         

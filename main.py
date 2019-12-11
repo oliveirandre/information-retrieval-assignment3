@@ -85,18 +85,11 @@ def main():
         start_time = time.time()
 
         query_result[temp[0]] = r.query(temp[1],size)
-
-        # Rocchio algorithm
-        #query_weights = r.queryWeights(temp[1])
-        #expanded_query = rocchio.RocchioAlgorithm(query_weights, query_result[temp[0]], relevantdocs[temp[0]])
-
-        #print(query_weights)
-        #print(expanded_query)
         
         print("Finished query " + temp[0])
         elapsed_time = time.time() - start_time
         times.append(elapsed_time)
-        break # Comentar ou não caso se queira fazer só o primeiro
+        #break # Comentar ou não caso se queira fazer só o primeiro
     avg_query_throughput = float(len(times)) / sum(times)
     print("Query throughput: " + str(avg_query_throughput) + " queries/s")
     print("Median Query Latency: " + str(statistics.median(times)) + " s")
@@ -105,13 +98,43 @@ def main():
     for i in query_result.keys():
         results.append(QueryStatistics(query_result[i], query_relevance[i], size,n, 10))
     
+    '''
     print("Average Precision: " + str(sum([r.precision for r in results]) / len(results)))
     print("Average Recall: "+ str(sum([r.recall for r in results]) / len(results)))
     print("Average F-Measure: "+ str(sum([r.f_measure for r in results]) / len(results)))
     print("Mean Average Precision: "+ str(sum([r.ap for r in results]) / len(results)))
     print("Average Precision at Rank 10: "+ str(sum([r.mp for r in results]) / len(results)))
     print("Average Normalized DCG: "+ str(sum([r.ndcg for r in results]) / len(results)))
+    '''
+    
+    query_expanded_result = {}
+    f = open(path, "r")
+    i = 0
+    while(True):
+        line = f.readline()
+        if line == "":
+            break
+        temp = line.split("\t")
+        query_weights = r.queryWeights(temp[1])
+        expanded_query = rocchio.RocchioAlgorithm(query_weights, query_result[temp[0]], relevantdocs[temp[0]])
+        query_expanded_result[temp[0]] = r.expandedQueryResults(expanded_query, size)
+        #break # Comentar ou não caso se queira fazer só o primeiro
 
+    expanded_results = []
+    for i in query_expanded_result.keys():
+        expanded_results.append(QueryStatistics(query_expanded_result[i], query_relevance[i], size,n, 10))
+
+    k = list(query_expanded_result.keys())[0]
+    t = QueryStatistics(query_expanded_result[k], query_relevance[k], size,n, 10)
+    print("Precision: " + str(t.precision))
+    print("Recall: " + str(t.recall))
+    
+    print("Average Precision: " + str(sum([r.precision for r in expanded_results]) / len(expanded_results)))
+    print("Average Recall: "+ str(sum([r.recall for r in expanded_results]) / len(expanded_results)))
+    print("Average F-Measure: "+ str(sum([r.f_measure for r in expanded_results]) / len(expanded_results)))
+    print("Mean Average Precision: "+ str(sum([r.ap for r in expanded_results]) / len(expanded_results)))
+    print("Average Precision at Rank 10: "+ str(sum([r.mp for r in expanded_results]) / len(expanded_results)))
+    print("Average Normalized DCG: "+ str(sum([r.ndcg for r in expanded_results]) / len(expanded_results)))
 
 
 
