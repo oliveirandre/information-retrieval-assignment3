@@ -187,7 +187,7 @@ class RankedRetriever:
                 index_file = self.index_marks[k]
         #print("Term: " + term +" found in document bigboy"  + str(index_file))
         if index_file in self.open_indexes: # Ir buscar à variável que detem este ficheiro em memória
-            print("Fui buscar à cache!")
+            #print("Fui buscar à cache!")
             for line in self.index_in_mem[index_file]:
                 if line[0:len(term)] == term:
                     self.refreshCache(index_file)
@@ -222,14 +222,14 @@ class RankedRetriever:
             self.index_in_mem[i] = f.readlines()
             f.close()
         self.open_indexes = new # Actualizar os indexes que estão abertos
-        print("Refreshed the cache:" + str(self.open_indexes))
+        #print("Refreshed the cache:" + str(self.open_indexes))
 
     
     def cacheStart(self, cache_size):
         self.open_indexes = list(range(0,cache_size))
         for i in self.open_indexes:
-            f = open("result/big_boy0", "r")
-            #f = open("result/big_boy" + str(i), "r")
+            #f = open("result/big_boy0", "r")
+            f = open("result/big_boy" + str(i), "r")
             self.index_in_mem[i]  = f.readlines()
             f.close()
         

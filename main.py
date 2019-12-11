@@ -106,7 +106,7 @@ def main():
     print("Average Precision at Rank 10: "+ str(sum([r.mp for r in results]) / len(results)))
     print("Average Normalized DCG: "+ str(sum([r.ndcg for r in results]) / len(results)))
     '''
-    
+
     query_expanded_result = {}
     f = open(path, "r")
     i = 0
@@ -135,8 +135,6 @@ def main():
     print("Mean Average Precision: "+ str(sum([r.ap for r in expanded_results]) / len(expanded_results)))
     print("Average Precision at Rank 10: "+ str(sum([r.mp for r in expanded_results]) / len(expanded_results)))
     print("Average Normalized DCG: "+ str(sum([r.ndcg for r in expanded_results]) / len(expanded_results)))
-
-
 
 
 '''
