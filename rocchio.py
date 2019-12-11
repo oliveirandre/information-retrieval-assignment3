@@ -1,3 +1,5 @@
+import operator
+
 class Rocchio:
     def __init__(self):
         self.alpha = 1
@@ -12,12 +14,19 @@ class Rocchio:
         return
 
     
-    def RocchioAlgorithm(self, query, docs):
+    def RocchioAlgorithm(self, query, results, relevant_docs):
+        #print(query)
         relevants = {}
         irrelevants = {}
         f = open("result/big_boy0", "r")
         lines = [line.strip() for line in f.readlines()]
         f.close()
+        count = 0
+
+        for res in results:
+            if res not in relevant_docs:
+                count += 1
+
         for line in lines:
             for i in range(1, len(line.split(";"))-1):
                 post = line.split(";")[0]
@@ -25,7 +34,7 @@ class Rocchio:
                 posting = line.split(";")[i]
 
                 # relevant documents
-                if posting.split(":")[0] in docs:
+                if posting.split(":")[0] in relevant_docs and posting.split(":")[0] in results:
                     weight = posting.split(":")[1]
                     if term in relevants:
                         relevants[term] += float(weight)
@@ -33,7 +42,7 @@ class Rocchio:
                         relevants[term] = float(weight)
                 
                 #irrelevant documents
-                else:
+                elif posting.split(":")[0] not in relevant_docs and posting.split(":")[0] in results:
                     weight = posting.split(":")[1]
                     if term in irrelevants:
                         irrelevants[term] += float(weight)
@@ -41,31 +50,29 @@ class Rocchio:
                         irrelevants[term] = float(weight)       
 
         # initialize Rocchio parameters
-        alpha = self.alpha
-        beta = self.beta
-        gamma = self.gamma
+        beta = self.beta/len(relevant_docs)
+        if(count > 0):
+            gamma = self.gamma/count
+        else:
+            gamma = 0
 
         final = {}
         for t in query:
-            final[t] = query[t]
+            final[t] = float(query[t])
 
         for t in relevants:
             if t in final:
-                final[t] += beta*relevants[t]
+                final[t] += beta*float(relevants[t])
             else:
-                final[t] = beta*relevants[t]
-
+                final[t] = beta*float(relevants[t])
+        
         for t in irrelevants:
             if t in final:
-                final[t] -= gamma*irrelevants[t]
+                final[t] -= gamma*float(irrelevants[t])
             else:
-                final[t] = gamma*irrelevants[t]
-
-        for t in query:
-            if float(final[t]) < 0:
-                final[t] = 0
-            
-        return final
+                final[t] = gamma*float(irrelevants[t])
+        
+        return(dict(sorted(final.items(), key=operator.itemgetter(1), reverse=True)[:15]))
 
 
 

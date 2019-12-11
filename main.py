@@ -53,28 +53,7 @@ def main():
     # result = r.query("Concerning the localization localization of steroids in centrioles and basal bodies by immunofluorescence.")
     # print(result)
 
-    # Correr querie rank para todos
-    times = []
-    f = open(path, "r")
-    line = "First"
-    while True:
-        line = f.readline()
-        if line == "":
-            break
-        temp = line.split("\t")
-        #print("Query n. " + temp[0] + ": " + temp[1])
-        start_time = time.time()
-
-        query_result[temp[0]] = r.query(temp[1],size)
-        
-        print("Finished query " + temp[0])
-        elapsed_time = time.time() - start_time
-        times.append(elapsed_time)
-        #break # Comentar ou não caso se queira fazer só o primeiro
-    avg_query_throughput = float(len(times)) / sum(times)
-    print("Query throughput: " + str(avg_query_throughput) + " queries/s")
-    print("Median Query Latency: " + str(statistics.median(times)) + " s")
-
+    
     # Comparar com o query relevance
     # 1 - query mais relevante, 2 - query menos relevante
     query_relevance = {}
@@ -89,7 +68,38 @@ def main():
         else:
             query_relevance[temp[0]] = [(temp[1],int(temp[2].replace("\n","")))]
     
-    #rocchio.RocchioAlgorithm(query_relevance)
+    relevantdocs = {}
+    for key in query_relevance.keys():
+        relevantdocs[key] = [x[0] for x in query_relevance[key]]
+
+    # Correr querie rank para todos
+    times = []
+    f = open(path, "r")
+    line = "First"
+    while True:
+        line = f.readline()
+        if line == "":
+            break
+        temp = line.split("\t")
+        #print("Query n. " + temp[0] + ": " + temp[1])
+        start_time = time.time()
+
+        query_result[temp[0]] = r.query(temp[1],size)
+
+        # Rocchio algorithm
+        query_weights = r.queryWeights(temp[1])
+        expanded_query = rocchio.RocchioAlgorithm(query_weights, query_result[temp[0]], relevantdocs[temp[0]])
+
+        #print(query_weights)
+        #print(expanded_query)
+        
+        print("Finished query " + temp[0])
+        elapsed_time = time.time() - start_time
+        times.append(elapsed_time)
+        break # Comentar ou não caso se queira fazer só o primeiro
+    avg_query_throughput = float(len(times)) / sum(times)
+    print("Query throughput: " + str(avg_query_throughput) + " queries/s")
+    print("Median Query Latency: " + str(statistics.median(times)) + " s")
     
     results = []
     for i in query_result.keys():
@@ -100,12 +110,12 @@ def main():
     #print("Precision: " + str(t.precision))
     #print("Recall: " + str(t.recall))
     
-    print("Average Precision: " + str(sum([r.precision for r in results]) / len(results)))
-    print("Average Recall: "+ str(sum([r.recall for r in results]) / len(results)))
-    print("Average F-Measure: "+ str(sum([r.f_measure for r in results]) / len(results)))
-    print("Mean Average Precision: "+ str(sum([r.ap for r in results]) / len(results)))
-    print("Average Precision at Rank 10: "+ str(sum([r.mp for r in results]) / len(results)))
-    print("Average Normalized DCG: "+ str(sum([r.ndcg for r in results]) / len(results)))
+    #print("Average Precision: " + str(sum([r.precision for r in results]) / len(results)))
+    #print("Average Recall: "+ str(sum([r.recall for r in results]) / len(results)))
+    #print("Average F-Measure: "+ str(sum([r.f_measure for r in results]) / len(results)))
+    #print("Mean Average Precision: "+ str(sum([r.ap for r in results]) / len(results)))
+    #print("Average Precision at Rank 10: "+ str(sum([r.mp for r in results]) / len(results)))
+    #print("Average Normalized DCG: "+ str(sum([r.ndcg for r in results]) / len(results)))
     # TODO: Calculate and present averages here
 
 

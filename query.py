@@ -6,11 +6,11 @@ class QueryStatistics:
     real = []
 
     def __init__(self, results, real, size, total, rank):
-        self.results = results
-        self.real = real
+        self.results = results # lista ordenada com resultados da query 
+        self.real = real # lista de tuplos com relevâncias (PMID, RELEVANCIA)
         self.real_wo_weights = [x[0] for x in self.real]
-        self.size = size
-        self.total = total
+        self.size = size # k
+        self.total = total # número de documentos total
         self.precision = self.calcPrecision()
         self.recall = self.calcRecall()
         self.f_measure = self.calcF_measure()
