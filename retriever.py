@@ -22,10 +22,17 @@ class RankedRetriever:
             -
 
     '''
-    def __init__(self):
+    def __init__(self, cache_size = 10):
+        # Cache
+        self.counters = []
+        self.open_indexes = []
+        self.index_in_mem = {}
+        self.cacheStart(cache_size)
+
         self.index_marks, self.term_ammount = self.verifyIndex()
         self.r = Rocchio()
         self.relevants = []
+
 
     '''
         Passos a fazer:
@@ -139,25 +146,72 @@ class RankedRetriever:
         for i in range(len(lines) - 1):
             temp = lines[i].split(":")
             index_marks[temp[1].replace("\n", "")] = int(temp[0])
-        print("Found " + str(n) + " terms.")
+        print("Found " + str(len(index_marks.keys())) + " index blocks/files.")
+        for ci in range(len(index_marks.keys())):
+            self.counters.append((ci,0))
         # Abrir ficheiros do indice 1 a 1 para ver o N
-        #print(index_marks)
         return (index_marks, n)
 
 
-    # TODO: Fazer uma cache nesta função
+    '''
+    How to simple cache:
+        1) Inicializar uma lista de contadores e uma lista de tamanho X
+        2) Manter aberto em memoria os ficheiros de indice contidos na lista X
+        3) Caso um passe a ser maior, trocar e abrir para memória o novo mais cotado
+
+    '''
     def openTerm(self, term):
         index_file = 0
         for k in self.index_marks.keys():
             if term >= k:
                 index_file = self.index_marks[k]
         #print("Term: " + term +" found in document bigboy"  + str(index_file))
-        f = open("result/big_boy" + str(index_file), "r")
-        line = "Oi"
-        while line != "":
-            line = f.readline()
-            if line[0:len(term)] == term:
-                return self.readFinalIndexLine(line)
+        if index_file in self.open_indexes: # Ir buscar à variável que detem este ficheiro em memória
+            print("Fui buscar à cache!")
+            for line in self.index_in_mem[index_file]:
+                if line[0:len(term)] == term:
+                    self.refreshCache(index_file)
+                    return self.readFinalIndexLine(line)
+
+        else: # Ir buscar à mão 
+            f = open("result/big_boy" + str(index_file), "r")
+            line = "Oi"
+            while line != "":
+                line = f.readline()
+                if line[0:len(term)] == term:
+                    f.close()
+                    self.refreshCache(index_file)
+                    return self.readFinalIndexLine(line)
+
+
+    def refreshCache(self, index_file):
+        self.counters[index_file] = (self.counters[index_file][0], self.counters[index_file][1] + 1)
+        # Verificar lista de contadores
+        sorted_by_count = sorted(self.counters, key=lambda x: x[1])[::-1]
+        # Comparar se o top 10 contadores estão abertos
+        new = [x[0] for x in sorted_by_count[0:len(self.open_indexes)]]
+        current = self.open_indexes
+
+        remove = set(current) - set(new)        # Desta forma só mexemos se for mesmo preciso, 
+        introduce = set(new) - set(current)     # não nos obriga a reler tudo.
+        for i in remove:
+            del self.index_in_mem[i]
+        
+        for i in new:
+            f = open("result/big_boy" + str(i), "r")
+            self.index_in_mem[i] = f.readlines()
+            f.close()
+        self.open_indexes = new # Actualizar os indexes que estão abertos
+        print("Refreshed the cache:" + str(self.open_indexes))
+
+    
+    def cacheStart(self, cache_size):
+        self.open_indexes = list(range(0,cache_size))
+        for i in self.open_indexes:
+            f = open("result/big_boy" + str(i), "r")
+            self.index_in_mem[i]  = f.readlines()
+            f.close()
+        
 
 
     # Abrir uma linha do índice
@@ -173,4 +227,7 @@ class RankedRetriever:
             temp2 = temp[i].split(":")
             term["docs"].append((temp2[0], temp2[1], temp2[2].split(",")))
         return term
+
+    
+
 
