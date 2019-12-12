@@ -69,6 +69,46 @@ class RankedRetriever:
                     doc_weights[d[0]] += float(d[1]) * float(query_weights[k])
                 else:
                     doc_weights[d[0]] = float(d[1]) * float(query_weights[k])
+        
+        if len(list(doc_weights.keys())) < y:
+            print("Não encontrou suficientes, vamos procurar semelhantes")
+            for ka in list(i.index.keys()):
+                sim = []
+                #Redução
+                for i in range(3, len(ka)):
+                    sim.append(ka[0:i])
+
+                #Maximização
+                index_file = 0
+                for k in self.index_marks.keys():
+                    if ka >= k:
+                        index_file = self.index_marks[k]
+                f = open("result/big_boy" + str(index_file), "r")
+                line = "Oi"
+                while line != "":
+                    line = f.readline()
+                    if line[0:len(ka)] == ka:
+                        line_sim = f.readline()
+                        while True:
+                            if ka == line_sim[0:len(ka)]:
+                                sim.append(line_sim.split(":")[0])
+                                line_sim = f.readline()
+                            else:
+                                break
+                        break
+                print(sim)
+                for k in sim:
+                    t = self.openTerm(k)
+                    if not t:
+                        print("Não encontrou o token " + t + " nos indices")
+                        continue
+                    
+                    #query_weights[ka] = float(query_weights[ka]) * float(t['idf'])
+                    for d in t['docs']:
+                        if d[0] in doc_weights.keys():
+                            doc_weights[d[0]] += float(d[1]) * float(query_weights[ka])
+                        else:
+                            doc_weights[d[0]] = float(d[1]) * float(query_weights[ka])          
 
         # Return sorted
         sorted_pmids = []
@@ -82,9 +122,9 @@ class RankedRetriever:
             sorted_pmids.append(max[0])
             del doc_weights[max[0]]
 
-        if y <= len(sorted_pmids):
+        if y <= len(sorted_pmids): # TODO: Meter aqui algoritmo de pesquisar similares
             return sorted_pmids[0:y]
-        else: # TODO: Meter aqui algoritmo de pesquisar similares
+        else: 
             return sorted_pmids
 
     def queryWeights(self, query, y = 10):
@@ -198,7 +238,6 @@ class RankedRetriever:
             line = "Oi"
             while line != "":
                 line = f.readline()
-                # if term in line
                 # if term[0:4] in line
                 # if term[0:4] == line[0:4]
                 if line[0:len(term)] == term:

@@ -69,8 +69,8 @@ class QueryStatistics:
                 a_precision.append(relevant_count / document_count) 
             recall.append(relevant_count / total_relevant)
             precision.append(relevant_count / document_count)
-        # print(recall)
-        # print(precision)
+        #print(recall)
+        #print(precision)
         return (sum(a_precision) / len(a_precision), precision[rank-1])
     
 

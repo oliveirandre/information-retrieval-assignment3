@@ -29,7 +29,7 @@ from rocchio import Rocchio
 
 verbose = False
 path = "queries.txt"
-size = 10
+size = 50
 
 def main():
     global verbose
@@ -106,6 +106,7 @@ def main():
     print("Average Precision at Rank 10: "+ str(sum([r.mp for r in results]) / len(results)))
     print("Average Normalized DCG: "+ str(sum([r.ndcg for r in results]) / len(results)))
     
+    print("\nSTARTING ROCCHIO\n")
 
     times = []
     query_expanded_result = {}
@@ -136,6 +137,7 @@ def main():
     for i in query_expanded_result.keys():
         expanded_results.append(QueryStatistics(query_expanded_result[i], query_relevance[i], size,n, 10))
 
+    
     k = list(query_expanded_result.keys())[0]
     t = QueryStatistics(query_expanded_result[k], query_relevance[k], size,n, 10)
     print("Precision: " + str(t.precision))
@@ -147,7 +149,7 @@ def main():
     print("Mean Average Precision: "+ str(sum([r.ap for r in expanded_results]) / len(expanded_results)))
     print("Average Precision at Rank 10: "+ str(sum([r.mp for r in expanded_results]) / len(expanded_results)))
     print("Average Normalized DCG: "+ str(sum([r.ndcg for r in expanded_results]) / len(expanded_results)))
-
+    
 
 '''
     Functions to process command line arguments
