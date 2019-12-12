@@ -198,6 +198,9 @@ class RankedRetriever:
             line = "Oi"
             while line != "":
                 line = f.readline()
+                # if term in line
+                # if term[0:4] in line
+                # if term[0:4] == line[0:4]
                 if line[0:len(term)] == term:
                     f.close()
                     self.refreshCache(index_file)
