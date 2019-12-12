@@ -138,10 +138,10 @@ def main():
         expanded_results.append(QueryStatistics(query_expanded_result[i], query_relevance[i], size,n, 10))
 
     
-    k = list(query_expanded_result.keys())[0]
-    t = QueryStatistics(query_expanded_result[k], query_relevance[k], size,n, 10)
-    print("Precision: " + str(t.precision))
-    print("Recall: " + str(t.recall))
+    #k = list(query_expanded_result.keys())[0]
+    #t = QueryStatistics(query_expanded_result[k], query_relevance[k], size,n, 10)
+    #print("Precision: " + str(t.precision))
+    #print("Recall: " + str(t.recall))
     
     print("Average Precision: " + str(sum([r.precision for r in expanded_results]) / len(expanded_results)))
     print("Average Recall: "+ str(sum([r.recall for r in expanded_results]) / len(expanded_results)))
