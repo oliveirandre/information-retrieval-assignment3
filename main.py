@@ -30,15 +30,17 @@ from rocchio import Rocchio
 verbose = False
 path = "queries.txt"
 size = 50
+cache_size = 10
 
 def main():
     global verbose
     global path
     global size
+    global cache_size
 
     rocchio = Rocchio()
     t = Tokenizer()
-    r = RankedRetriever()
+    r = RankedRetriever(cache_size)
     query_result = {}
 
     # Getting the total list of documents
@@ -158,6 +160,7 @@ def readCLArguments(args):
     global verbose
     global path
     global size
+    global cache_size
 
     if ('--help' in args):
         printHelp()
@@ -167,7 +170,8 @@ def readCLArguments(args):
         path = args[args.index('--path') + 1]
     if ('-s' in args):
         size = int(args[args.index('-s') + 1])
-
+    if ('-c' in args):
+        cache_size = int(args[args.index('-c') + 1])
 
 
 
@@ -175,9 +179,9 @@ def readCLArguments(args):
 def printHelp():
     print("usage: python3 main.py [option]")
     print("Options:")
-    print("-v           : verbose mode")
     print("--path       : Path to the file containing queries")
     print("-s           : Intended size for the resulting queries")
+    print("-c           : Cache size")
     sys.exit(1)
 
 if __name__ == "__main__":
