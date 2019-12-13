@@ -94,5 +94,6 @@ class QueryStatistics:
         for i in range(1,len(real_relevances)):
             ideal += float(relevances[i] / math.log(i+1,2))
             actual += float(real_relevances[i] / math.log(i+1,2))
-
+        if ideal == 0:
+            return 0
         return actual / ideal
