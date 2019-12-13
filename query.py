@@ -69,21 +69,30 @@ class QueryStatistics:
                 a_precision.append(relevant_count / document_count) 
             recall.append(relevant_count / total_relevant)
             precision.append(relevant_count / document_count)
-        #print(recall)
-        #print(precision)
+        # print(recall)
+        # print(precision)
         return (sum(a_precision) / len(a_precision), precision[rank-1])
     
 
     def calcNDCG(self): # TODO: Verificar de acordo com as sugestões do prof
-        relevances = [int(x[1]) if x[1] == 0 else 3 - int(x[1]) for x in self.real]
-        relevances.sort()
-        ideal = relevances[0]
-        actual = self.real[0][1]
+        # relevances = [int(x[1]) if int(x[1]) == 0 else 3 - int(x[1]) for x in self.real] # Cálculo das relevâncias ideiais
+        # relevances.sort(reverse=True)
         total = 0
-        for i in range(1,len(self.real)):
-            t_rel = 0
-            if self.real[i][1] > 0:
-                t_rel = 3 - self.real[i][1]
-            ideal += relevances[i] / math.log(i+1,2)
-            actual += self.real[i][1] / math.log(i+1,2)
-        return ideal/actual
+        real_relevances = []
+        for i in self.results: # Cálculo das relevâncias atuais
+            if i in self.real_wo_weights:
+                for x in self.real:
+                    if i == x[0]:
+                        real_relevances.append(3 - x[1])
+            else:
+                real_relevances.append(0)
+        relevances = sorted(real_relevances, reverse=True)
+        ideal = float(relevances[0])
+        actual = float(real_relevances[0])
+        print(real_relevances)
+        print(relevances)
+        for i in range(1,len(real_relevances)):
+            ideal += float(relevances[i] / math.log(i+1,2))
+            actual += float(real_relevances[i] / math.log(i+1,2))
+
+        return actual / ideal
